@@ -1,0 +1,93 @@
+<!-- extends表明此页面继承自 base.html 文件 -->
+{% extends "base.html" %}
+{% load staticfiles %}
+
+<!-- 写入 base.html 中定义的 title -->
+{% block title %}
+    文章详情
+{% endblock title %}
+
+<!-- 写入 base.html 中定义的 content -->
+{% block content %}
+
+<!-- 文章详情 -->
+<div class="container">
+    <div class="row">
+        <!-- 标题及作者 -->
+        <h1 class="col-12 mt-4 mb-4">{{ article.title }}</h1>
+        <div class="col-12 alert alert-success">
+            <div>
+            作者：{{ article.author }}
+            {% if user == article.author %}
+
+                <a href="#" onclick="confirm_safe_delete()">删除文章</a>
+                <form
+                    style = "display: none;"
+                    id="safe_delete"
+                    action='{% url "article:article_safe_delete" article.id %}'
+                    method="POST"
+                    >
+                    {% csrf_token %}
+                    <button type="submit" >发送</button>
+                </form>
+                <a href="{% url 'article:article_update' article.id %}">编辑文章</a>
+            {% endif %}
+            </div>
+            <div>
+                 浏览：{{ article.total_views }}
+            </div>
+        </div>
+        <!-- 文章正文 -->
+        <div class="col-12">
+           <!-- 在 article.body 后加上 |safe 过滤器的目的
+           Django出于安全的考虑，会将输出的HTML代码进行转义，
+           这使得article.body中渲染的HTML文本无法正常显示。管道符|是Django中过滤器的写法，
+           而|safe就类似给article.body贴了一个标签，表示这一段字符不需要进行转义了。
+           -->
+            <p>{{ article.body | safe }}</p>
+        </div>
+    </div>
+</div>
+<!--<a>标签中增加了onclick属性，表示在点击链接时调用后面的confirm_delete()函数。
+confirm_delete()函数中调用了layer弹窗组件，对弹窗的标题、正文以及确定键进行了定义。
+location.href是点击确定键后应该前往的地址，即删除文章的url。
+通过onclick实现了功能逻辑，因此href链接就不需要再跳转了。
+点击删除文章链接时，弹出 layer 弹窗
+弹窗不再发起 GET 请求，而是通过 Jquery 选择器找到隐藏的表单，并点击发送按钮
+表单发起 POST 请求，并携带了 csrf 令牌，从而避免了 csrf 攻击
+-->
+<script>
+    //删除文章的函数
+    function confirm_delete(){
+        //调用layer弹窗组件
+
+        layer.open({
+            //弹窗标题
+            title: "确认删除",
+            //正文
+            content: "确认删除这篇文章吗？",
+            //点击确认后调用回调函数
+            yes: function (index,layero){
+                //前往指定url
+                location.href = '{% url "article:article_delete" article.id %}'
+            },
+        })
+    }
+
+    function confirm_safe_delete(){
+        layer.open({
+            //弹窗标题
+            title: "确认删除",
+            //正文
+            content: "确认删除这篇文章吗？",
+            //点击确认后调用回调函数
+            yes: function (index,layero){
+                $('form#safe_delete button').click();
+                layer.close(index);
+
+            },
+        })
+    }
+</script>
+
+{% endblock content %}

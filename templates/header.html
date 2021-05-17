@@ -1,0 +1,75 @@
+<!-- 定义导航栏
+导航栏一般放在页面的顶部。
+我们可以使用 .navbar 类来创建一个标准的导航栏，后面紧跟: .navbar-expand-xl|lg|md|sm 类来创建响应式的导航栏 (大屏幕水平铺开，小屏幕垂直堆叠)。
+导航栏上的选项可以使用 <ul> 元素并添加 class="navbar-nav" 类。 然后在 <li> 元素上添加 .nav-item 类， <a> 元素上使用 .nav-link 类:
+选择.navbar-light用于浅色背景色或.navbar-dark用于深色背景色。然后，使用.bg-*实用程序自定义
+-->
+<nav class="navbar navbar-expand-md navbar-dark bg-dark">
+  <!--
+  当容器在导航栏中时，其横向填充将在低于指定.navbar-expand{-sm|-md|-lg|-xl}类别的断点处移除。
+  这可以确保在导航栏折叠时，我们不会在较低视口上不必要地加倍填充。
+  -->
+  <div class="container">
+
+    <!-- 导航栏图片文字 <img src="/path/to/image.png"></a> 后期加图片的方式 -->
+    <a class="navbar-brand" href="#">我的博客</a>
+
+     <!-- 导航入口 -->
+    <div>
+      <ul class="navbar-nav">
+        <!-- 条目 -->
+        <li class="nav-item">
+          <a  class="nav-link" href="{% url 'article:article_create' %}">写文章</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'article:article_list' %}">文章</a>
+        </li>
+        {% if user.is_authenticated %}
+        <!-- 如果用户已经登录，则显示用户名下拉框 -->
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              {{ user.username }}
+            </a>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="dropdown-item" href="#" onclick="user_delete()">删除用户</a>
+              <a class="dropdown-item" href='{% url "userprofile:logout" %}'>退出登录</a>
+              <a class="dropdown-item" href='{% url "userprofile:edit" user.id %}'>个人信息</a>  
+            </div>
+        </li>
+    <!-- 如果用户未登录，则显示 “登录” -->
+    {% else %}
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'userprofile:login' %}">登录</a>
+        </li>
+    <!-- if 语句在这里结束 -->
+    {% endif %}
+    <!-- 删除用户的JS语句-->
+    {% if user.is_authenticated %}
+    <form
+        style="display:none;"
+        id="user_delete"
+        action="{% url 'userprofile:delete' user.id %}"
+        method="POST"
+    >
+    {% csrf_token %}
+        <button type="submit">发送</button>
+    </form>
+        <script>
+            function user_delete() {
+                // 调用layer弹窗组件
+                layer.open({
+                    title: "确认删除",
+                    content: "确认删除用户资料吗？",
+                    yes: function(index, layero) {
+                        $('form#user_delete button').click();
+                        layer.close(index);
+                    },
+                })
+            }
+        </script>
+    {% endif %}
+      </ul>
+    </div>
+
+  </div>
+</nav>

@@ -1,0 +1,47 @@
+<!--
+    载入静态文件
+    模板中要加上 {% load staticfiles %} 之后，才可使用 {% static 'path' %} 引用静态文件
+    HTML语法中，所有的内容都被标签包裹；标签及标签中的属性可以对内容进行排印、解释说明等作用。
+    <head></head>标签内包含网页的元数据，是不会在页面内显示出来的。<body></body>标签内才是网页会显示的内容。
+    留意Bootstrap的css、js文件分别是如何引入的
+    jquery.js 和 popper.js 要在 bootstrap.js 前引入。
+-->
+{% load staticfiles %}
+
+<!-- 网站主语言 -->
+<html lang="zh-cn">
+
+<head>
+    <!-- 网站采用的字符编码 -->
+    <meta charset="utf-8">
+    <!-- 预留网站标题的位置 -->
+    <title>{% block title %}{% endblock %}</title>
+    <!-- 引入bootstrap的css文件 -->
+    <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+    <!-- 引入monikai.css -->
+    <link rel="stylesheet" href="{% static 'md_css/monokai.css' %}">
+</head>
+
+<body>
+    <!-- 引入导航栏 -->
+    {% include 'header.html' %}
+    <!-- 预留具体页面的位置 -->
+    {% block content %}{% endblock content %}
+    <!-- 引入注脚 -->
+    {% include 'footer.html' %}
+    <!-- bootstrap.js 依赖 jquery.js 和popper.js，因此在这里引入 -->
+    <script src="{% static 'jquery/jquery-3.6.0.min.js' %}"></script>
+    <!--
+        popper.js 采用 cdn 远程引入，意思是你不需要把它下载到本地。
+        在实际的开发中推荐静态文件尽量都使用 cdn 的形式。
+        采用本地引入是为了让读者了解静态文件本地部署的流程。
+    -->
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1-lts/dist/umd/popper.min.js"></script>
+    <!-- 引入layer.js  Layer弹窗组件。-->
+    <script src="{% static 'layer/layer.js' %}"></script>
+    <!-- 引入bootstrap的js文件 -->
+    <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+
+</body>
+
+</html>
