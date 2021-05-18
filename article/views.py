@@ -11,17 +11,37 @@ from .forms import ArticlePostForm
 from django.contrib.auth.models import User
 # 引入分页模块
 from django.core.paginator import Paginator
+# 引入Q对象
+from django.db.models import Q
+from comment.models import Comment
 # Create your views here.
 # 视图函数  视图函数中的request与网页发来的请求有关，里面包含get或post的内容、用户浏览器、系统等信息。。
 def article_list(request):
     # ArticlePost.objects.all() 可以获得所有的对象（即博客文章），并传递给articles变量
     articles_list = ArticlePost.objects.all()
-    if request.GET.get('order') == 'total_views':
-        article_list = ArticlePost.objects.all().order_by('-total_views')
-        order = 'total_views'
+    search = request.GET.get('search')
+    order = request.GET.get('order')
+    if search:
+        if order == 'total_views':
+            article_list = ArticlePost.objects.filter(
+                Q(title__icontains=search) |
+                Q(body__icontains=search)
+            ).order_by('-total_views')
+        else:
+            article_list = ArticlePost.objects.filter(
+                Q(title__icontains=search) |
+                Q(body__icontains=search)
+            )
     else:
-        article_list = ArticlePost.objects.all()
-        order = 'normal'
+        # 将 search 参数重置为空
+        # 用户没有搜索操作，
+        # 则search = request.GET.get('search')会使得search = None，
+        # 而这个值传递到模板中会错误地转换成"None"字符串
+        search = ''
+        if order == 'total_views':
+            article_list = ArticlePost.objects.all().order_by('-total_views')
+        else:
+            article_list = ArticlePost.objects.all()
     # 每页显示一篇文章
     paginator = Paginator(articles_list,3)
     # 获取url的页码
@@ -30,7 +50,7 @@ def article_list(request):
     articles = paginator.get_page(page)
     # context定义了需要传递给模板的上下文，这里即articles
     # context = {'articles':articles}
-    context = {'articles':articles, 'order':order}
+    context = {'articles':articles, 'order':order,'search':search}
     # 最后返回了render函数。它的作用是结合模板和上下文，并返回渲染后的HttpResponse对象。
     # request  get或post的内容、用户浏览器、系统等信息
     # article/list.html定义了模板文件的位置、名称
@@ -41,6 +61,9 @@ def article_list(request):
 def article_detail(request,id):
     # 获取对应id文章
     article = ArticlePost.objects.get(id=id)
+    # 取出文章评论
+    comments = Comment.objects.filter(article=id)
+
     article.total_views += 1
     article.save(update_fields=['total_views'])
     # 将markdown语法渲染成html样式
@@ -49,15 +72,16 @@ def article_detail(request,id):
     # 第二个参数载入了常用的语法扩展：
     # markdown.extensions.extra中包括了缩写、表格等扩展，
     # markdown.extensions.codehilite则是后面要使用的代码高亮扩展。
-    article.body = markdown.markdown(article.body,
+    md = markdown.Markdown(
         extensions=[
-            # 包含缩写，表格等扩展
             'markdown.extensions.extra',
-            # 语法高亮扩展
             'markdown.extensions.codehilite',
-        ])
+            'markdown.extensions.toc',
+        ]
+    )
+    article.body = md.convert(article.body)
     # 需要传递给模板的对象
-    context = {'article':article}
+    context = {'article':article,'toc':md.toc,'comments':comments}
     #载入模板返回context对象
     return render(request,'article/detail.html',context)
 # 文章编辑页
@@ -100,15 +124,14 @@ def article_delete(request, id):
     return redirect("article:article_list")
 #凡是重要的数据操作，都应该考虑带有 csrf 令牌的 POST 请求；或者更简单的方法，数据查询用 GET，数据更改用 POST。
 def article_safe_delete(request, id):
-    if request.user != article.author:
-        return HttpResponse("抱歉，你无权修改这篇文章~")
     if request.method == 'POST':
         article = ArticlePost.objects.get(id=id)
-        article.user = User.objects.get(id=request.user.id)
+        if request.user != article.author:
+            return HttpResponse("抱歉，你无权修改这篇文章。")
         article.delete()
         return redirect("article:article_list")
     else:
-        return HttpResponse("仅允许POST请求")
+        return HttpResponse("仅允许post请求")
 
 # 更新文章
 """

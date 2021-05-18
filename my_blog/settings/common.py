@@ -20,12 +20,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'o@+bob!r!fy%j7m+qet5bf_j)d$nk6of2i#d%qqs_@nv!6&9o8'
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+
+
 
 
 # Application definition
@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'article',
     'userprofile',
     'password_reset',
+    'comment',
 ]
 
 MIDDLEWARE = [
@@ -108,7 +109,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 
@@ -123,7 +124,7 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR,'static'),
 )
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
+# STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
 # SMTP服务器
 EMAIL_HOST = 'smtp.163.com'
 # 邮箱名

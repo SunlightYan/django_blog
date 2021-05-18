@@ -13,49 +13,102 @@
 <!-- 文章详情 -->
 <div class="container">
     <div class="row">
-        <!-- 标题及作者 -->
-        <h1 class="col-12 mt-4 mb-4">{{ article.title }}</h1>
-        <div class="col-12 alert alert-success">
-            <div>
-            作者：{{ article.author }}
-            {% if user == article.author %}
-
-                <a href="#" onclick="confirm_safe_delete()">删除文章</a>
-                <form
-                    style = "display: none;"
-                    id="safe_delete"
-                    action='{% url "article:article_safe_delete" article.id %}'
-                    method="POST"
-                    >
-                    {% csrf_token %}
-                    <button type="submit" >发送</button>
-                </form>
-                <a href="{% url 'article:article_update' article.id %}">编辑文章</a>
-            {% endif %}
-            </div>
+        <div class="col-9">
+            <!-- 标题及作者 -->
+            <h1 class="mt-4 mb-4">{{ article.title }}</h1>
+            <div class="alert alert-success">
+                <div>
+                    作者：{{ article.author }}
+                    {% if user == article.author %}
+                        <a href="#" onclick="confirm_safe_delete()">删除文章</a>
+                        <form
+                            style = "display: none;"
+                            id="safe_delete"
+                            action='{% url "article:article_safe_delete" article.id %}'
+                            method="POST"
+                            >
+                            {% csrf_token %}
+                            <button type="submit" >发送</button>
+                        </form>
+                        <a href="{% url 'article:article_update' article.id %}">编辑文章</a>
+                {% endif %}
+                </div>
             <div>
                  浏览：{{ article.total_views }}
             </div>
-        </div>
-        <!-- 文章正文 -->
-        <div class="col-12">
-           <!-- 在 article.body 后加上 |safe 过滤器的目的
-           Django出于安全的考虑，会将输出的HTML代码进行转义，
-           这使得article.body中渲染的HTML文本无法正常显示。管道符|是Django中过滤器的写法，
-           而|safe就类似给article.body贴了一个标签，表示这一段字符不需要进行转义了。
-           -->
+            </div>
+            <!-- 文章正文 -->
+            <div class="col-12">
             <p>{{ article.body | safe }}</p>
-        </div>
+            </div>
+            <!-- 发表评论 -->
+            <hr>
+            {% if user.is_authenticated %}
+                <div>
+                    <form
+                        action="{% url 'comment:post_comment' article.id %}"
+                        method="POST"
+                    >
+                    {% csrf_token %}
+                        <div class="form-group">
+                            <label for="body">
+                                <strong>
+                                    我也要发言：
+                                </strong>
+                            </label>
+                            <textarea
+                                type="text"
+                                class="form-control"
+                                id="body"
+                                name="body"
+                                rows="2"></textarea>
+                        </div>
+                        <!-- 提交按钮 -->
+                        <button type="submit" class="btn btn-primary ">发送</button>
+                    </form>
+                </div>
+                <br>
+            {% else %}
+                <br>
+                <h5 class="row justify-content-center">
+                    请<a href="{% url 'userprofile:login' %}">登录</a>后回复
+                </h5>
+                <br>
+            {% endif %}
+
+
+
+            <!-- 显示评论 -->
+            <h4>共有{{ comments.count }}条评论</h4>
+            <div>
+                {% for comment in comments %}
+                    <hr>
+                    <p>
+                        <strong style="color: pink">
+                            {{ comment.user }}
+                        </strong> 于
+                        <span style="color: green">
+                            {{ comment.created|date:"Y-m-d H:i:s" }}
+                        </span> 时说：
+                    </p>
+                    <pre style="font-family: inherit; font-size: 1em;">{{ comment.body }}</pre>
+        {% endfor %}
     </div>
 </div>
-<!--<a>标签中增加了onclick属性，表示在点击链接时调用后面的confirm_delete()函数。
-confirm_delete()函数中调用了layer弹窗组件，对弹窗的标题、正文以及确定键进行了定义。
-location.href是点击确定键后应该前往的地址，即删除文章的url。
-通过onclick实现了功能逻辑，因此href链接就不需要再跳转了。
-点击删除文章链接时，弹出 layer 弹窗
-弹窗不再发起 GET 请求，而是通过 Jquery 选择器找到隐藏的表单，并点击发送按钮
-表单发起 POST 请求，并携带了 csrf 令牌，从而避免了 csrf 攻击
--->
+        <!-- 目录 -->
+        <div class="col-3 mt-4" id="sidebar" class="sidebar">
+            <div class="sidebar__inner">
+                <h4><strong>目录</strong></h4>
+                <hr>
+                <div>
+                    {{ toc|safe }}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
 <script>
     //删除文章的函数
     function confirm_delete(){
@@ -91,3 +144,16 @@ location.href是点击确定键后应该前往的地址，即删除文章的url�
 </script>
 
 {% endblock content %}
+
+<!--在 article.body 后加上 |safe 过滤器的目的
+Django出于安全的考虑，会将输出的HTML代码进行转义，
+这使得article.body中渲染的HTML文本无法正常显示。管道符|是Django中过滤器的写法，
+而|safe就类似给article.body贴了一个标签，表示这一段字符不需要进行转义了。
+<a>标签中增加了onclick属性，表示在点击链接时调用后面的confirm_delete()函数。
+confirm_delete()函数中调用了layer弹窗组件，对弹窗的标题、正文以及确定键进行了定义。
+location.href是点击确定键后应该前往的地址，即删除文章的url。
+通过onclick实现了功能逻辑，因此href链接就不需要再跳转了。
+点击删除文章链接时，弹出 layer 弹窗
+弹窗不再发起 GET 请求，而是通过 Jquery 选择器找到隐藏的表单，并点击发送按钮
+表单发起 POST 请求，并携带了 csrf 令牌，从而避免了 csrf 攻击
+-->

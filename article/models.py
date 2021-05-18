@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth.models import User
 # timezone 处理时间有关函数
 from django.utils import timezone
+from django.urls import reverse
 # Create your models here.
 # 博客文章数据类型。参数 author title body created updated
 class ArticlePost(models.Model):
@@ -32,3 +33,7 @@ class ArticlePost(models.Model):
     # 用 _str_ 定义当前调用对象的 s't
     def __str__ (self):
         return self.title
+
+    # 获取文章地址
+    def get_absolute_url(self):
+        return reverse('article:article_detail', args=[self.id])
