@@ -124,7 +124,7 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR,'static'),
 )
 STATIC_URL = '/static/'
-# STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
 # SMTP服务器
 EMAIL_HOST = 'smtp.163.com'
 # 邮箱名
